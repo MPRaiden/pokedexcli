@@ -21,6 +21,8 @@ type cliCommand struct {
 			description: "Exits the pokedex",
 			callback: exitCommand,
 		},
+		"map": {}.
+		"mapb": {}.
 	}
 
 	func helpCommand() error {
@@ -34,7 +36,7 @@ type cliCommand struct {
 	}
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin):
 
 	for {
 		fmt.Print("pokedex> ")
