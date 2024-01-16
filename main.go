@@ -4,12 +4,19 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"github.com/MPRaiden/pokedex/pokedexcli/pokeapi"
 )
 type cliCommand struct {
 		name string
 		description string
 		callback func() error
 	}
+
+type config struct {
+	Next string
+	Previous string
+}
+
 	var commands = map[string]cliCommand{
 		"help": {
 			name: "help",
@@ -51,6 +58,7 @@ func main() {
 			}
 		} else {
 			fmt.Println("Your pokemon is >", text)
+			pokeapi.GetPokeLocations()
 		}
 	}
 }
