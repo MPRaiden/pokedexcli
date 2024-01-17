@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"github.com/MPRaiden/pokedexcli/pokeapi"
+	"github.com/MPRaiden/pokedexcli/internal/pokeapi"
 )
 type cliCommand struct {
 		name string
