@@ -30,8 +30,8 @@ type cliCommand struct {
                 return pokeapi.GetPokeLocations(cfg)
 		},
 	},
-		"previousMap": {
-			name: "previousMap",
+		"mapb": {
+			name: "mapb",
 			description: "Displays 20 previous pokemon locations",
 			callback: func(cfg *pokeapi.Config) error {
 		return pokeapi.GetPreviousPokeLocations(cfg)

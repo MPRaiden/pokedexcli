@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"encoding/json"
+	"errors"
 )
 
 type Config struct {
@@ -53,8 +54,11 @@ func GetPokeLocations(cfg *Config) error {
 	return nil
 }
 
-// Note to self: Need to handle the case where the previous URL is null (when there has been no calls to map yet so no previous URL exits)
 func GetPreviousPokeLocations(cfg *Config) error {
+	if cfg.Previous == "" {
+		fmt.Println("There are no previous locations")
+		return errors.New("There are no previous locations to display")
+	}
 	res, err := http.Get(cfg.Previous)
 	if err != nil {
 		return fmt.Errorf("Failed to get locations: %w", err)
