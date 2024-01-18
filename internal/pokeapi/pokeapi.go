@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"errors"
+	"github.com/MPRaiden/pokedexcli/internal/pokecache"
 )
 
 type Config struct {
@@ -23,20 +24,27 @@ type LocationsResponse struct {
 	} `json:"results"`
 }
 
-func GetPokeLocations(cfg *Config) error {
-	res, err := http.Get(cfg.Next)
-	if err != nil {
-		return fmt.Errorf("Failed to get locations: %w", err)
-	}
-	defer res.Body.Close()
+func GetPokeLocations(cfg *Config, cache *pokecache.Cache) error {
+	var err error
+	body, ok := cache.Get(cfg.Next)
+	if !ok {
+		var res *http.Response
+		res, err = http.Get(cfg.Next)
+		if err != nil {
+			return fmt.Errorf("Failed to get locations: %w", err)
+		}
+		defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("Failed to read response body: %w", err)
-	}
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("Failed to read response body: %w", err)
+		}
 
-	if res.StatusCode > 299 {
-		return fmt.Errorf("HTTP Error: %s", body)
+		if res.StatusCode > 299 {
+			return fmt.Errorf("HTTP Error: %s", body)
+		}
+	
+		cache.Add(cfg.Next, body)
 	}
 
 	var locationsResponse LocationsResponse
@@ -54,24 +62,29 @@ func GetPokeLocations(cfg *Config) error {
 	return nil
 }
 
-func GetPreviousPokeLocations(cfg *Config) error {
+func GetPreviousPokeLocations(cfg *Config, cache *pokecache.Cache) error {
 	if cfg.Previous == "" {
-		fmt.Println("There are no previous locations")
 		return errors.New("There are no previous locations to display")
 	}
-	res, err := http.Get(cfg.Previous)
-	if err != nil {
-		return fmt.Errorf("Failed to get locations: %w", err)
-	}
-	defer res.Body.Close()
+	var err error
+	var res *http.Response
+	var body []byte
+	body, ok := cache.Get(cfg.Previous)
+	if !ok {
+		res, err = http.Get(cfg.Previous)
+		if err != nil {
+			return fmt.Errorf("Failed to get locations: %w", err)
+		}
+		defer res.Body.Close()
 
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("Failed to read response body: %w", err)
-	}
+		body, err = io.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("Failed to read response body: %w", err)
+		}
 
-	if res.StatusCode > 299 {
-		return fmt.Errorf("HTTP Error: %s", body)
+		if res.StatusCode > 299 {
+			return fmt.Errorf("HTTP Error: %s", body)
+		}
 	}
 
 	var locationsResponse LocationsResponse
