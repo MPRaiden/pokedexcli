@@ -7,14 +7,15 @@ import (
 	"github.com/MPRaiden/pokedexcli/internal/pokeapi"
 	"github.com/MPRaiden/pokedexcli/internal/pokecache"
 	"time"
+	"strings"
 )
 type cliCommand struct {
 		name string
 		description string
-		callback func(*pokeapi.Config, *pokecache.Cache) error
+		callback func(*pokeapi.Config, *pokecache.Cache, []string) error
 	}
 
-	var commands = map[string]cliCommand{
+var commands = map[string]cliCommand{
 		"help": {
 			name: "help",
 			description: "Displays a help message",
@@ -28,25 +29,26 @@ type cliCommand struct {
 		"map": {
 			name: "map",
 			description: "Displays 20 pokemon locations",
-			callback: func(cfg *pokeapi.Config, cache *pokecache.Cache) error {
-                return pokeapi.GetPokeLocations(cfg, cache)
+			callback: pokeapi.GetPokeLocations,
 		},
-	},
 		"mapb": {
 			name: "mapb",
 			description: "Displays 20 previous pokemon locations",
-			callback: func(cfg *pokeapi.Config, cache *pokecache.Cache) error {
-		return pokeapi.GetPreviousPokeLocations(cfg, cache)
-	    },
-	},
-	}
+			callback: pokeapi.GetPreviousPokeLocations,
+		},	
+		"explore": {
+			name: "explore",
+			description: "Displays list of pokemon in a given location",
+			callback: pokeapi.GetPokeInLocation,
+		},		
+}
 
-	func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache) error {
-		fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex")
+	func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
+		fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location")
 		return nil
 	}
 
-	func exitCommand(cfg *pokeapi.Config, cache *pokecache.Cache) error {
+	func exitCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
 		os.Exit(0)
 		return nil
 	}
@@ -57,22 +59,27 @@ func main() {
 
 	// Initialize the config with initial PokeAPI URL
 	config := &pokeapi.Config{
-		Next: "https://pokeapi.co/api/v2/location/",
+		Next: "https://pokeapi.co/api/v2/location-area/",
 	}
 
 	for {
 		fmt.Print("pokedex> ")
 		scanner.Scan()
-		text := scanner.Text()
+		input := scanner.Text()
+		// Split the user input into command and arguments
+		parts := strings.Split(input, " ")
 
-		command, exists := commands[text]
+		commandName := parts[0]
+		args := parts[1:]
+
+		command, exists := commands[commandName]
 		if exists {
-			err := command.callback(config, cache)
+			err := command.callback(config, cache, args)
 			if err != nil {
 				fmt.Printf("Failed to execute command %s: %s", command.name, err)
 			}
 		} else {
-			fmt.Println("Your pokemon is >", text)
+			fmt.Println("Your input is >", input)
 		}
 	}
 }
