@@ -7,11 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/MPRaiden/pokedexcli/internal/pokecache"
+	"math/rand"
+	"github.com/MPRaiden/pokedexcli/models"
 )
 
 type Config struct {
 	Next string
 	Previous string
+	Trainer *models.Trainer
 }
 
 type LocationsResponse struct {
@@ -152,4 +155,49 @@ func GetPokeInLocation(cfg *Config, cache *pokecache.Cache, args[]string) error 
 		}
 	} 
 	return nil
+}
+
+func CatchPokemon(cfg *Config, cache *pokecache.Cache, args[]string) error {
+		// Check if the user provided a pokemon name
+		if len(args) != 1 {
+			return errors.New("Please provide one pokemon to catch")
+		}
+		pokemonName := args[0]
+		
+		// Call the PokeAPI to get the pokemon
+		res, err := http.Get("https://pokeapi.co/api/v2/pokemon/" + pokemonName)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		
+		// Check if the API call was successful
+		if res.StatusCode > 299 || res.StatusCode < 200 {
+			return fmt.Errorf("HTTP Error: %s", res.Status)
+		}
+		
+				
+		// Print the response
+		var result map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+			return err
+		}
+
+		// Calculate the catch probability (the higher the base experience, the lower the probability)
+		chance := rand.Intn(100)
+		baseExperience, ok := result["base_experience"].(float64)
+		if !ok {
+			return fmt.Errorf("Failed to parse base experience: %w", err)
+		}
+		// If the chance is higher than the base experience, the pokemon escapes
+		if chance > int(baseExperience) {
+			fmt.Println("The pokemon escaped!")
+			return nil
+		}
+		// Otherwise, the pokemon is caught
+		pokemon := models.Pokemon{Name: result["name"].(string), BaseExperience: baseExperience}
+		cfg.Trainer.Pokedex[pokemon.Name] = pokemon
+		fmt.Printf("You caught %s!\n", result["name"].(string))
+
+		return nil
 }
