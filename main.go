@@ -48,10 +48,15 @@ var commands = map[string]cliCommand{
 			description: "Catches a pokemon",
 			callback: pokeapi.CatchPokemon,
 		},
+		"inspect": {
+			name: "inspect",
+			description: "Displays information about a pokemon",
+			callback: inspectPokemon,
+		},
 }
 
 func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
-	fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location\ncatch: Attempts to catch a pokemon and if successful saves it to players pokedex.")
+	fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location\ncatch: Attempts to catch a pokemon and if successful saves it to players pokedex\ninspect: Displays information on a pokemon if in caught")
 		return nil
 	}
 
@@ -59,6 +64,37 @@ func exitCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) erro
 		os.Exit(0)
 		return nil
 	}	
+
+func inspectPokemon(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
+	// Check if the user provided a pokemon name
+	if len(args) < 1 {
+		return fmt.Errorf("Please provide a pokemon name")
+	}
+
+	// Extract the pokemon name from the arguments and check if the pokemon is in the pokedex
+	pokemonName := args[0]
+	pokemon, ok := cfg.Trainer.Pokedex[pokemonName]
+	if !ok {
+		return fmt.Errorf("You do not have a pokemon named %s", pokemonName)
+	}
+
+	// Print the pokemon information
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", int(pokemon.Height))
+	fmt.Printf("Weight: %d\n", int(pokemon.Weight))
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		if stat.Name == "hp" || stat.Name == "attack" || stat.Name == "defense" || stat.Name == "special-attack" ||stat.Name == "special-defense" || stat.Name == "speed" {
+			fmt.Printf("\t-%s: %d\n", stat.Name, stat.BaseStat) // print only Base Stat, rename label
+		}
+	}
+	fmt.Println("Types:")
+	for _, type_ := range pokemon.Types {
+		fmt.Printf("\tName: %s\n", type_.Name)
+	}
+
+	return nil
+}
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -92,7 +128,7 @@ func main() {
 				fmt.Printf("Failed to execute command %s: %s", command.name, err)
 			}
 		} else {
-			fmt.Println("Your input is >", input)
+			fmt.Println("That is not a valid command. Please type help to see available commands.>")
 		}
 	}
 }

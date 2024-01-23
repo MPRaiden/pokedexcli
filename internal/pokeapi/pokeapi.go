@@ -175,14 +175,10 @@ func CatchPokemon(cfg *Config, cache *pokecache.Cache, args[]string) error {
 		if res.StatusCode > 299 || res.StatusCode < 200 {
 			return fmt.Errorf("HTTP Error: %s", res.Status)
 		}
-		
-				
-		// Print the response
 		var result map[string]interface{}
 		if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 			return err
 		}
-
 		// Calculate the catch probability (the higher the base experience, the lower the probability)
 		chance := rand.Intn(100)
 		baseExperience, ok := result["base_experience"].(float64)
@@ -194,8 +190,50 @@ func CatchPokemon(cfg *Config, cache *pokecache.Cache, args[]string) error {
 			fmt.Println("The pokemon escaped!")
 			return nil
 		}
+	
 		// Otherwise, the pokemon is caught
-		pokemon := models.Pokemon{Name: result["name"].(string), BaseExperience: baseExperience}
+		pokemon := models.Pokemon{Name: result["name"].(string),
+		BaseExperience: baseExperience,
+		Height: result["height"].(float64),
+		Weight: result["weight"].(float64), 
+		Stats: make([]models.Stat, 0), 
+		Types: make([]models.Type, 0)}
+
+		hpRawStats, ok := result["stats"].([]interface{})
+		if !ok {
+			return fmt.Errorf("Failed parsing stats")
+		}
+
+		for _, hpData := range hpRawStats {
+			statData, ok := hpData.(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("Failed to parse stat data")
+			}
+			pokemonStat := models.Stat{
+				BaseStat: int(statData["base_stat"].(float64)),
+				Effort:	  int(statData["effort"].(float64)),
+				Name:     statData["stat"].(map[string]interface{})["name"].(string),
+			}
+			pokemon.Stats = append(pokemon.Stats, pokemonStat)
+		}
+
+		hpRawTypes, ok := result["types"].([]interface{})
+		if !ok {
+			return fmt.Errorf("Failed parsing types")
+		}
+
+		for _, hpData := range hpRawTypes {
+			typeData, ok := hpData.(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("Failed to parse type data")
+			}
+			pokemonType := models.Type{
+				Slot: int(typeData["slot"].(float64)),
+				Name: typeData["type"].(map[string]interface{})["name"].(string),
+			}
+			pokemon.Types = append(pokemon.Types, pokemonType)
+		}
+		
 		cfg.Trainer.Pokedex[pokemon.Name] = pokemon
 		fmt.Printf("You caught %s!\n", result["name"].(string))
 
