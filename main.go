@@ -53,10 +53,15 @@ var commands = map[string]cliCommand{
 			description: "Displays information about a pokemon",
 			callback: inspectPokemon,
 		},
+		"pokedex": {
+			name: "pokedex",
+			description: "Displays all pokemon caught",
+			callback: displayPokedex,
+		},
 }
 
 func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
-	fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location\ncatch: Attempts to catch a pokemon and if successful saves it to players pokedex\ninspect: Displays information on a pokemon if in caught")
+	fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location\ncatch: Attempts to catch a pokemon and if successful saves it to players pokedex\ninspect: Displays information on a pokemon if in caught.\npokedex: Displays pokemon from Players pokedex")
 		return nil
 	}
 
@@ -93,6 +98,20 @@ func inspectPokemon(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) e
 		fmt.Printf("\tName: %s\n", type_.Name)
 	}
 
+	return nil
+}
+
+func displayPokedex(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
+	// Displays all pokemon caught from pokedex (only names)
+	if len(cfg.Trainer.Pokedex) == 0 {
+		fmt.Println("You have not caught any pokemon yet")
+		return nil
+	}
+
+	fmt.Println("Pokedex:")
+	for _, pokemon := range cfg.Trainer.Pokedex {
+		fmt.Printf("\t-%s\n", pokemon.Name)
+	}
 	return nil
 }
 
