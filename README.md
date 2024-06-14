@@ -19,5 +19,8 @@ To use PokedexCLI, make sure you have Go installed on your system. Then, clone t
 
 ```bash
 git clone https://github.com/MPRaiden/pokedexcli.git
+```
 
 ## Contributing
+MPR && boot.dev
+
