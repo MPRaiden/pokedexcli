@@ -60,8 +60,60 @@ var commands = map[string]cliCommand{
 	},
 }
 
+func getCommands() map[string]cliCommand {
+	return map[string]cliCommand{
+		"help": {
+			name:        "help",
+			description: "Displays a help message",
+			callback:    helpCommand,
+		},
+		"exit": {
+			name:        "exit",
+			description: "Exits the pokedex",
+			callback:    exitCommand,
+		},
+		"map": {
+			name:        "map",
+			description: "Displays 20 pokemon locations",
+			callback:    pokeapi.GetPokeLocations,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays 20 previous pokemon locations",
+			callback:    pokeapi.GetPreviousPokeLocations,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Displays list of pokemon in a given location",
+			callback:    pokeapi.GetPokeInLocation,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Catches a pokemon",
+			callback:    pokeapi.CatchPokemon,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Displays information about a pokemon",
+			callback:    inspectPokemon,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Displays all pokemon caught",
+			callback:    displayPokedex,
+		},
+	}
+}
+
 func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args []string) error {
-	fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location\ncatch: Attempts to catch a pokemon and if successful saves it to players pokedex\ninspect: Displays information on a pokemon if in caught.\npokedex: Displays pokemon from Players pokedex")
+	fmt.Println()
+	fmt.Println("Welcome to the Pokedex!")
+	fmt.Println("Usage:")
+	fmt.Println()
+	for _, cmd := range getCommands() {
+		fmt.Printf("%s: %s\n", cmd.name, cmd.description)
+	}
+	fmt.Println()
 	return nil
 }
 
