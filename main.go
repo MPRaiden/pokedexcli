@@ -17,49 +17,6 @@ type cliCommand struct {
 	callback    func(*pokeapi.Config, *pokecache.Cache, []string) error
 }
 
-var commands = map[string]cliCommand{
-	"help": {
-		name:        "help",
-		description: "Displays a help message",
-		callback:    helpCommand,
-	},
-	"exit": {
-		name:        "exit",
-		description: "Exits the pokedex",
-		callback:    exitCommand,
-	},
-	"map": {
-		name:        "map",
-		description: "Displays 20 pokemon locations",
-		callback:    pokeapi.GetPokeLocations,
-	},
-	"mapb": {
-		name:        "mapb",
-		description: "Displays 20 previous pokemon locations",
-		callback:    pokeapi.GetPreviousPokeLocations,
-	},
-	"explore": {
-		name:        "explore",
-		description: "Displays list of pokemon in a given location",
-		callback:    pokeapi.GetPokeInLocation,
-	},
-	"catch": {
-		name:        "catch",
-		description: "Catches a pokemon",
-		callback:    pokeapi.CatchPokemon,
-	},
-	"inspect": {
-		name:        "inspect",
-		description: "Displays information about a pokemon",
-		callback:    inspectPokemon,
-	},
-	"pokedex": {
-		name:        "pokedex",
-		description: "Displays all pokemon caught",
-		callback:    displayPokedex,
-	},
-}
-
 func getCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
@@ -194,7 +151,7 @@ func main() {
 		commandName := parts[0]
 		args := parts[1:]
 
-		command, exists := commands[commandName]
+		command, exists := getCommands()[commandName]
 		if exists {
 			err := command.callback(config, cache, args)
 			if err != nil {
