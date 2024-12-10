@@ -3,74 +3,75 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"github.com/MPRaiden/pokedexcli/internal/pokeapi"
 	"github.com/MPRaiden/pokedexcli/internal/pokecache"
-	"time"
-	"strings"
 	"github.com/MPRaiden/pokedexcli/models"
+	"os"
+	"strings"
+	"time"
 )
 
 type cliCommand struct {
-		name string
-		description string
-		callback func(*pokeapi.Config, *pokecache.Cache, []string) error
+	name        string
+	description string
+	callback    func(*pokeapi.Config, *pokecache.Cache, []string) error
 }
 
 var commands = map[string]cliCommand{
-		"help": {
-			name: "help",
-			description: "Displays a help message",
-			callback: helpCommand,
-		},
-		"exit": {
-			name: "exit",
-			description: "Exits the pokedex",
-			callback: exitCommand,
-		},
-		"map": {
-			name: "map",
-			description: "Displays 20 pokemon locations",
-			callback: pokeapi.GetPokeLocations,
-		},
-		"mapb": {
-			name: "mapb",
-			description: "Displays 20 previous pokemon locations",
-			callback: pokeapi.GetPreviousPokeLocations,
-		},	
-		"explore": {
-			name: "explore",
-			description: "Displays list of pokemon in a given location",
-			callback: pokeapi.GetPokeInLocation,
-		},		
-		"catch": {
-			name: "catch",
-			description: "Catches a pokemon",
-			callback: pokeapi.CatchPokemon,
-		},
-		"inspect": {
-			name: "inspect",
-			description: "Displays information about a pokemon",
-			callback: inspectPokemon,
-		},
-		"pokedex": {
-			name: "pokedex",
-			description: "Displays all pokemon caught",
-			callback: displayPokedex,
-		},
+	"help": {
+		name:        "help",
+		description: "Displays a help message",
+		callback:    helpCommand,
+	},
+	"exit": {
+		name:        "exit",
+		description: "Exits the pokedex",
+		callback:    exitCommand,
+	},
+	"map": {
+		name:        "map",
+		description: "Displays 20 pokemon locations",
+		callback:    pokeapi.GetPokeLocations,
+	},
+	"mapb": {
+		name:        "mapb",
+		description: "Displays 20 previous pokemon locations",
+		callback:    pokeapi.GetPreviousPokeLocations,
+	},
+	"explore": {
+		name:        "explore",
+		description: "Displays list of pokemon in a given location",
+		callback:    pokeapi.GetPokeInLocation,
+	},
+	"catch": {
+		name:        "catch",
+		description: "Catches a pokemon",
+		callback:    pokeapi.CatchPokemon,
+	},
+	"inspect": {
+		name:        "inspect",
+		description: "Displays information about a pokemon",
+		callback:    inspectPokemon,
+	},
+	"pokedex": {
+		name:        "pokedex",
+		description: "Displays all pokemon caught",
+		callback:    displayPokedex,
+	},
 }
 
-func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
+func helpCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args []string) error {
 	fmt.Println("Welcome to the Pokedex!\n\nUsage:\n\nhelp: Displays a help message\nexit: Exit the Pokedex\nmap: Displays 20 pokemon locations\nmapb: Displays 20 previous pokemon locations\nexplore: Displays list of pokemon in a given location\ncatch: Attempts to catch a pokemon and if successful saves it to players pokedex\ninspect: Displays information on a pokemon if in caught.\npokedex: Displays pokemon from Players pokedex")
-		return nil
-	}
+	return nil
+}
 
-func exitCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
-		os.Exit(0)
-		return nil
-	}	
+func exitCommand(cfg *pokeapi.Config, cache *pokecache.Cache, args []string) error {
+	fmt.Println("Closing the Pokedex... Goodbye!")
+	os.Exit(0)
+	return nil
+}
 
-func inspectPokemon(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
+func inspectPokemon(cfg *pokeapi.Config, cache *pokecache.Cache, args []string) error {
 	// Check if the user provided a pokemon name
 	if len(args) < 1 {
 		return fmt.Errorf("Please provide a pokemon name")
@@ -89,7 +90,7 @@ func inspectPokemon(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) e
 	fmt.Printf("Weight: %d\n", int(pokemon.Weight))
 	fmt.Println("Stats:")
 	for _, stat := range pokemon.Stats {
-		if stat.Name == "hp" || stat.Name == "attack" || stat.Name == "defense" || stat.Name == "special-attack" ||stat.Name == "special-defense" || stat.Name == "speed" {
+		if stat.Name == "hp" || stat.Name == "attack" || stat.Name == "defense" || stat.Name == "special-attack" || stat.Name == "special-defense" || stat.Name == "speed" {
 			fmt.Printf("\t-%s: %d\n", stat.Name, stat.BaseStat) // print only Base Stat, rename label
 		}
 	}
@@ -101,7 +102,7 @@ func inspectPokemon(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) e
 	return nil
 }
 
-func displayPokedex(cfg *pokeapi.Config, cache *pokecache.Cache, args[]string) error {
+func displayPokedex(cfg *pokeapi.Config, cache *pokecache.Cache, args []string) error {
 	// Displays all pokemon caught from pokedex (only names)
 	if len(cfg.Trainer.Pokedex) == 0 {
 		fmt.Println("You have not caught any pokemon yet")
@@ -121,15 +122,16 @@ func main() {
 
 	// Initialize the config with initial PokeAPI URL
 	config := &pokeapi.Config{
-		Next: "https://pokeapi.co/api/v2/location-area/",
+		Next:    "https://pokeapi.co/api/v2/location-area/",
 		Trainer: &models.Trainer{Pokedex: make(map[string]models.Pokemon)},
 	}
 
+	fmt.Println("Welcome to the Pokedex!")
 	for {
 		fmt.Print("pokedex> ")
 		if !scanner.Scan() {
 			if err := scanner.Err(); err != nil {
-			fmt.Fprintf(os.Stderr, "reading standard input: %v\n", err)
+				fmt.Fprintf(os.Stderr, "reading standard input: %v\n", err)
 			}
 			break
 		}
@@ -147,7 +149,7 @@ func main() {
 				fmt.Printf("Failed to execute command %s: %s", command.name, err)
 			}
 		} else {
-			fmt.Println("That is not a valid command. Please type help to see available commands.>")
+			fmt.Println("Unknown command.")
 		}
 	}
 }
